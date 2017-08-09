@@ -2,7 +2,7 @@ var path = require('path')
 var utils = require('./utils')
 var config = require('../config')
 var vueLoaderConfig = require('./vue-loader.conf')
-
+// resolve根据func里的方法可以找到文件的位置，所以可以直接在js中import相关的文件，如@import "~common/stylus/variable"
 function resolve (dir) {
   return path.join(__dirname, '..', dir)
 }
@@ -18,10 +18,12 @@ module.exports = {
       ? config.build.assetsPublicPath
       : config.dev.assetsPublicPath
   },
+    // 配置别名，是代码中的模块不是node中的模块
   resolve: {
     extensions: ['.js', '.vue', '.json'],
     alias: {
-      '@': resolve('src')
+      '@': resolve('src'),
+      'common':resolve('src/common')
     }
   },
   module: {
