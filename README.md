@@ -23,3 +23,9 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 ## package.json
 
  fastclick解决移动端点击300毫秒延迟的问题
+
+ ## 笔记
+
+Promise 封装是为了让所有的请求，不管是 axios 请求还是 jsonp 都是统一的 Promise
+
+语法链式调用，而原始的 jsonp 是只支持 callback 的方式调用，需要 Promise 封装。
