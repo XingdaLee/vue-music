@@ -5,8 +5,9 @@
     <router-view></router-view>
   </div>
 </template>
+
 <script type="text/ecmascript-6">
-// 驼峰表达式
+  // 驼峰表达式
   import MHeader from 'components/m-header/m-header'
   import Tab from 'components/tab/tab'
   export default {
@@ -16,5 +17,6 @@
     }
   }
 </script>
+
 <style scoped lang="stylus" rel="stylesheet/stylus">
 </style>

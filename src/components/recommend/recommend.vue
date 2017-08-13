@@ -1,25 +1,51 @@
 <template>
-  <div>
-    推荐页面</div>
+  <div class="recommend">
+    <div class="recommend-content">
+      <div class="slider-wrapper">
+        <slider>
+          <div v-for="item in recommends" v-bind="key">
+            <a :href="item.linkUrl">
+              <img :src="item.picUrl" />
+            </a>
+          </div>
+        </slider>
+      </div>
+      <div class="recommend-list">
+        <h1 class="list-title">热门歌单推荐</h1>
+        <ul>
+        </ul>
+      </div>
+    </div>
+  </div>
 </template>
+
 <script type="text/ecmascript-6">
-import { getRecommend } from 'api/recommend'
-import { ERR_OK } from 'api/config'
-export default {
-  created() {
-    this._getRecommend()
-  },
-  methods: {
-    _getRecommend() {
-      getRecommend().then((res) => {
-        if (res.code === ERR_OK) {
-          console.log(res.data.slider)
-        }
-      })
+  import {
+    getRecommend
+  } from 'api/recommend'
+  import {
+    ERR_OK
+  } from 'api/config'
+  import slider from 'base/slider/slider'
+  export default {
+    data() {
+      recommends: []
+    },
+    created() {
+      this._getRecommend()
+    },
+    methods: {
+      _getRecommend() {
+        getRecommend().then((res) => {
+          if (res.code === ERR_OK) {
+            this.recommends = (res.data.slider)
+          }
+        })
+      }
     }
   }
-}
 </script>
+
 <style lang="stylus" rel="stylesheet/stylus">
 @import "~common/stylus/variable"
   .recommend
