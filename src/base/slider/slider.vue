@@ -5,7 +5,9 @@
       <!-- slot 插槽-->
       <slot></slot>
     </div>
-    <div class="dots"></div>
+    <div class="dots">
+      <span class="dot" v-for="(item,index) in dots" :key="index" :class="{active:currentPageIndex === index}"></span>
+    </div>
   </div>
 </template>
 
@@ -13,6 +15,13 @@
 import BScroll from 'better-scroll'
 import { addClass } from 'common/js/dom'
 export default {
+  // currentPageIndex默认小圆点是第一个
+  data() {
+    return {
+      dots: [],
+      currentPageIndex: 0
+    }
+  },
   // props可以从外部组建进行调用里面的属性
   props: {
     loop: {
@@ -34,7 +43,12 @@ export default {
     // 一般DOM渲染需要17毫秒。这里设置为20比较科学
     setTimeout(() => {
       this._setSliderWidth()
+      // 小圆点_initDots必须在_initSlider之前执行，防止拿到的子节点的数量不对
+      this._initDots()
       this._initSlider()
+      if (this.autoPlay) {
+        this._play()
+      }
     }, 20)
   },
   methods: {
@@ -58,6 +72,9 @@ export default {
       }
       this.$refs.sliderGroup.style.width = width + 'px'
     },
+    _initDots() {
+      this.dots = new Array(this.children.length)
+    },
     // _initSlider初始化slider
     /*
       scroll横向滚动
@@ -76,7 +93,37 @@ export default {
         snapSpeed: 400,
         click: true
       })
-    }
+      // 通过BScroll的scrollEnd事件返回当前是第几个元素
+      this.slider.on('scrollEnd', () => {
+        let pageIndex = this.slider.getCurrentPage().pageX
+        if (this.loop) {
+          pageIndex -= 1
+        }
+        this.currentPageIndex = pageIndex
+        // 每次点击时候都要清除轮播的效果，防止滚动
+        if (this.autoPlay) {
+          clearTimeout(this.timer)
+          this._play()
+        }
+      })
+    },
+    // 自动播放
+    _play() {
+      let pageIndex = this.currentPageIndex + 1
+      if (this.loop) {
+        pageIndex += 1
+      }
+      // pageIndex横向方向，0代表纵向Y的，400是时间间隔
+      this.timer = setTimeout(() => {
+        this.slider.goToPage(pageIndex, 0, 400)
+      }, this.interval)
+    },
+    window.addEventListener('resize', () => {
+      if (!this.slider) {
+        return
+      }
+      this._setSliderWidth()
+    })
   }
 }
 </script>
