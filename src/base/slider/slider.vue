@@ -126,6 +126,13 @@ export default {
       this.timer = setTimeout(() => {
         this.slider.goToPage(pageIndex, 0, 400)
       }, this.interval)
+    },
+    /*
+      Vue 实例销毁后调用destroyed。调用后，Vue 实例指示的所有东西都会解绑定，
+      所有的事件监听器会被移除，所有的子实例也会被销毁。
+    */
+    destroyed() {
+      clearTimeout(this.timer)
     }
   }
 }

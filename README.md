@@ -29,3 +29,5 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 Promise 封装是为了让所有的请求，不管是 axios 请求还是 jsonp 都是统一的 Promise
 
 语法链式调用，而原始的 jsonp 是只支持 callback 的方式调用，需要 Promise 封装。
+
+keep-alive包裹router-view可以缓存dom对象和数据，切换的时候才不会闪烁。主要用于保留组件状态或避免重新渲染。
