@@ -50,10 +50,19 @@ export default {
         this._play()
       }
     }, 20)
+    // 监听窗口大小的变化
+    window.addEventListener('resize', () => {
+      if (!this.slider) {
+        return
+      }
+      this._setSliderWidth(true)
+      // BScroll的刷新方法，重新计算
+      this.slider.refresh()
+    })
   },
   methods: {
     // 横向滚动设置宽度
-    _setSliderWidth() {
+    _setSliderWidth(isResize) {
       this.children = this.$refs.sliderGroup.children
       let width = 0
       // 父容器的宽度
@@ -67,7 +76,8 @@ export default {
         width += sliderWidth
       }
       // this.loop是true时，会克隆两个dom,保证循环切换，所以增加2倍宽度
-      if (this.loop) {
+      // 加上isResize是防止每次宽度都增加
+      if (this.loop && !isResize) {
         width += 2 * sliderWidth
       }
       this.$refs.sliderGroup.style.width = width + 'px'
@@ -90,8 +100,7 @@ export default {
         snap: true,
         snapLoop: this.loop,
         snapThreshold: 0.3,
-        snapSpeed: 400,
-        click: true
+        snapSpeed: 400
       })
       // 通过BScroll的scrollEnd事件返回当前是第几个元素
       this.slider.on('scrollEnd', () => {
@@ -100,7 +109,7 @@ export default {
           pageIndex -= 1
         }
         this.currentPageIndex = pageIndex
-        // 每次点击时候都要清除轮播的效果，防止滚动
+        // 每次点击时候都要清除轮播的效果，重置轮播开始的时间
         if (this.autoPlay) {
           clearTimeout(this.timer)
           this._play()
@@ -117,13 +126,7 @@ export default {
       this.timer = setTimeout(() => {
         this.slider.goToPage(pageIndex, 0, 400)
       }, this.interval)
-    },
-    window.addEventListener('resize', () => {
-      if (!this.slider) {
-        return
-      }
-      this._setSliderWidth()
-    })
+    }
   }
 }
 </script>
