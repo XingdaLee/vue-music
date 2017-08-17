@@ -21,12 +21,8 @@
 </template>
 <script type="text/ecmascript-6">
 import Slider from 'base/slider/slider'
-import {
-  getRecommend
-} from 'api/recommend'
-import {
-  ERR_OK
-} from 'api/config'
+import { getRecommend, getDiscList } from 'api/recommend'
+import { ERR_OK } from 'api/config'
 export default {
   components: {
     Slider
@@ -38,11 +34,21 @@ export default {
   },
   created() {
     this._getRecommend()
+    this._getDiscList()
   },
   methods: {
     _getRecommend() {
       getRecommend().then((res) => {
         if (res.code === ERR_OK) {
+          this.recommends = res.data.slider
+        }
+      })
+    },
+    _getDiscList() {
+      getDiscList().then((res) => {
+        debugger
+        if (res.code === ERR_OK) {
+          debugger
           this.recommends = res.data.slider
         }
       })
