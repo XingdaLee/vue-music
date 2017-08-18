@@ -11,7 +11,7 @@ var express = require('express')
 var webpack = require('webpack')
 var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
-
+var axios = require('axios')
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
 // automatically open browser, if not set will be false
@@ -21,12 +21,24 @@ var autoOpenBrowser = !!config.dev.autoOpenBrowser
 var proxyTable = config.dev.proxyTable
 
 var app = express()
-// 自己创建代理的请求
-var apiRoute = express.Router();
-apiRoute.get('/getDiscList', function (req, res) {
+// 自己创建后端代理的请求
+var apiRoutes = express.Router();
+apiRoutes.get('/getDiscList', function (req, res) {
   var url = 'https://c.y.qq.com/splcloud/fcgi-bin/fcg_get_diss_by_tag.fcg'
-  
+  axios.get(url, {
+    headers: {
+      referer: "https://c.y.qq.com",
+      host: "c.y.qq.com"
+    },
+    params: req.query
+  }).then(function (response) {
+    // 输出数据到浏览器前端
+    res.json(response.data);
+  }).catch(function (error) {
+    console.log(error);
+  });
 })
+app.use('/api', apiRoutes)
 // end
 var compiler = webpack(webpackConfig)
 

@@ -46,10 +46,8 @@ export default {
     },
     _getDiscList() {
       getDiscList().then((res) => {
-        debugger
         if (res.code === ERR_OK) {
           debugger
-          this.recommends = res.data.slider
         }
       })
     }
