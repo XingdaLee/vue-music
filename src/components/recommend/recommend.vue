@@ -1,13 +1,13 @@
 <template>
   <div class="recommend">
-    <Scroll class="recommend-content" :data="discList">
+    <Scroll ref="scroll" class="recommend-content" :data="discList">
       <!-- 有值的时候才会去渲染slider，否则会slider里会拿不到元素 -->
       <div>
         <div v-if="recommends.length" class="slider-wrapper">
           <Slider>
             <div v-for="item in recommends" :key="item.id">
               <a :href="item.linkUrl">
-                <img :src="item.picUrl" />
+                <img @load="loadImage" :src="item.picUrl" />
               </a>
             </div>
           </Slider>
@@ -64,6 +64,18 @@ export default {
           this.discList = res.data.list
         }
       })
+    },
+    // 防止slider没加载出来时，歌单就加载出来，导致歌单显示不完整
+    loadImage() {
+      // checkLoaded是标志位。只需要加载一张图片时重新渲染即可
+      // 必须在页面注册 ref="scroll"才可以使用，这个是dom暴露的接口。
+      if (!this.checkLoaded) {
+        // this.$refs.scroll.refresh()
+        this.checkLoaded = true
+        setTimeout(() => {
+          this.$refs.scroll.refresh()
+        }, 20)
+      }
     }
   }
 }
@@ -71,7 +83,7 @@ export default {
 
 <style lang="stylus" rel="stylesheet/stylus">
 @import "~common/stylus/variable"
-  .recommend
+ .recommend
     position: fixed
     width: 100%
     top: 88px

@@ -24,7 +24,7 @@ export default {
   mounted() {
     setTimeout(() => {
       this._initScroll()
-    })
+    }, 20)
   },
   methods: {
     _initScroll() {
@@ -46,12 +46,12 @@ export default {
       this.scroll && this.refresh
     }
   },
-  // 监听data的数据变化，就去刷新scroll
+  // 监听传过来的data的数据变化，就去自动刷新scroll，不用再使用this.$refs.scroll.refresh()去手动的刷新
   watch: {
     data() {
       setTimeout(() => {
         this.refresh()
-      })
+      }, 20)
     }
   }
 }

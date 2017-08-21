@@ -57,7 +57,9 @@ export default {
       }
       this._setSliderWidth(true)
       // BScroll的刷新方法，重新计算
-      this.slider.refresh()
+      setTimeout(() => {
+        this.slider.refresh()
+      }, 20)
     })
   },
   methods: {
