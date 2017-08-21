@@ -16,8 +16,9 @@
           <h1 class="list-title">热门歌单推荐</h1>
           <ul>
             <li class="item" v-for="item in discList" :key="item.dissid">
+              <!-- v-lazy替换掉原来的src，当滚动的时候才会加载图片，不会像以前那样一次性加载完 -->
               <div class="icon">
-                <img width="60" height="60" :src="item.imgurl" />
+                <img width="60" height="60" v-lazy="item.imgurl" />
               </div>
               <div class="text">
                 <h2 class="name" v-html="item.creator.name"></h2>
