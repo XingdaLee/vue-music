@@ -1,40 +1,44 @@
 <template>
   <div class="recommend">
-    <div class="recommend-content">
+    <Scroll class="recommend-content" :data="discList">
       <!-- 有值的时候才会去渲染slider，否则会slider里会拿不到元素 -->
-      <div v-if="recommends.length" class="slider-wrapper">
-        <Slider>
-          <div v-for="item in recommends" :key="item.id">
-            <a :href="item.linkUrl">
-              <img :src="item.picUrl" />
-            </a>
-          </div>
-        </Slider>
-      </div>
-      <div class="recommend-list">
-        <h1 class="list-title">热门歌单推荐</h1>
-        <ul>
-          <li class="item" v-for="item in discList" :key="item.dissid">
-            <div class="icon">
-              <img width="60" height="60" :src="item.imgurl" />
+      <div>
+        <div v-if="recommends.length" class="slider-wrapper">
+          <Slider>
+            <div v-for="item in recommends" :key="item.id">
+              <a :href="item.linkUrl">
+                <img :src="item.picUrl" />
+              </a>
             </div>
-            <div class="text">
-              <h2 class="name" v-html="item.creator.name"></h2>
-              <p class="desc" v-html="item.dissname"></p>
-            </div>
-          </li>
-        </ul>
+          </Slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li class="item" v-for="item in discList" :key="item.dissid">
+              <div class="icon">
+                <img width="60" height="60" :src="item.imgurl" />
+              </div>
+              <div class="text">
+                <h2 class="name" v-html="item.creator.name"></h2>
+                <p class="desc" v-html="item.dissname"></p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
+    </Scroll>
   </div>
 </template>
 <script type="text/ecmascript-6">
+import Scroll from 'base/scroll/scroll'
 import Slider from 'base/slider/slider'
 import { getRecommend, getDiscList } from 'api/recommend'
 import { ERR_OK } from 'api/config'
 export default {
   components: {
-    Slider
+    Slider,
+    Scroll
   },
   data() {
     return {
