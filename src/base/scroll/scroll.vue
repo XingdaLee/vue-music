@@ -36,6 +36,7 @@ export default {
         click: this.click
       })
     },
+    // 下面是BScroll的方法代理
     enable() {
       this.scroll && this.scroll.enable()
     },
@@ -43,7 +44,7 @@ export default {
       this.scroll && this.scroll.disable()
     },
     refresh() {
-      this.scroll && this.refresh
+      this.scroll && this.scroll.refresh()
     }
   },
   // 监听传过来的data的数据变化，就去自动刷新scroll，不用再使用this.$refs.scroll.refresh()去手动的刷新

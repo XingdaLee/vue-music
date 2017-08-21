@@ -31,6 +31,7 @@
   </div>
 </template>
 <script type="text/ecmascript-6">
+// scroll抽象出来的公共组件
 import Scroll from 'base/scroll/scroll'
 import Slider from 'base/slider/slider'
 import { getRecommend, getDiscList } from 'api/recommend'
@@ -72,6 +73,7 @@ export default {
       if (!this.checkLoaded) {
         // this.$refs.scroll.refresh()
         this.checkLoaded = true
+        // this.$refs.scroll.refresh()调用的是scroll组建里的refresh()
         setTimeout(() => {
           this.$refs.scroll.refresh()
         }, 20)

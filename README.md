@@ -31,3 +31,5 @@ Promise 封装是为了让所有的请求，不管是 axios 请求还是 jsonp �
 语法链式调用，而原始的 jsonp 是只支持 callback 的方式调用，需要 Promise 封装。
 
 keep-alive包裹router-view可以缓存dom对象和数据，切换的时候才不会闪烁。主要用于保留组件状态或避免重新渲染。
+
+BScroll的节点是父子级关系，父元素高度固定，子元素在父元素基础上滚动
