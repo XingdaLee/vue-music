@@ -7,7 +7,8 @@
           <Slider>
             <div v-for="item in recommends" :key="item.id">
               <a :href="item.linkUrl">
-                <img @load="loadImage" :src="item.picUrl" />
+                <!-- needsclick是固定写法，加上的话可以解决fastclick点击事件冲突，导致无法点击的情况 -->
+                <img class="needsclick" @load="loadImage" :src="item.picUrl" />
               </a>
             </div>
           </Slider>
@@ -28,6 +29,9 @@
           </ul>
         </div>
       </div>
+      <div class="loading-container" v-show="!discList.length">
+        <Loading></Loading>
+      </div>
     </Scroll>
   </div>
 </template>
@@ -35,12 +39,14 @@
 // scroll抽象出来的公共组件
 import Scroll from 'base/scroll/scroll'
 import Slider from 'base/slider/slider'
+import Loading from 'base/loading/loading'
 import { getRecommend, getDiscList } from 'api/recommend'
 import { ERR_OK } from 'api/config'
 export default {
   components: {
     Slider,
-    Scroll
+    Scroll,
+    Loading
   },
   data() {
     return {
