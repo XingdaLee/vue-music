@@ -2,6 +2,10 @@
 
 > music player
 
+slider:轮播图
+
+recommend:推荐歌单页，包括better-scroll的使用，歌单列表的渲染，lazyload图片懒加载的使用
+
 ## Build Setup
 
 ``` bash
