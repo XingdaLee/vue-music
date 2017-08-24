@@ -45,6 +45,13 @@ export default {
     },
     refresh() {
       this.scroll && this.scroll.refresh()
+    },
+    // 滚动到指定位置
+    scrollTo() {
+      this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+    },
+    scrollToElement() {
+      this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
     }
   },
   // 监听传过来的data的数据变化，就去自动刷新scroll，不用再使用this.$refs.scroll.refresh()去手动的刷新

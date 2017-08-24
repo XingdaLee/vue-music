@@ -1,21 +1,38 @@
 <template>
-  <Scroll class="listview" :data="data">
+  <Scroll class="listview" :data="data" ref="listview">
     <ul>
-      <li v-for="group in data" class="list-group" :key="group.title">
+      <li v-for="group in data" class="list-group" :key="group.title" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
           <li class="list-group-item" v-for="item in group.items" :key="item.id">
-            <img class="avatar" v-lazy="item.avatar" alt="">
+            <img class="avatar" v-lazy="item.avatar">
             <span class="name">{{item.name}}</span>
           </li>
         </ul>
       </li>
     </ul>
+    <!-- touchstart和touchmove是BScroll的事件 -->
+    <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove.stop.prevent="onShortcutTouchMove">
+      <ul>
+        <!-- 增加了扩展属性index，便于点击时获取节点 -->
+        <li class="item" v-for="(item, index) in shortcutList" :data-index="index" :key="item.id">
+          {{item}}
+        </li>
+      </ul>
+    </div>
   </Scroll>
 </template>
 <script type="text/ecmascript-6">
 import Scroll from 'base/scroll/scroll'
+import { getData } from 'common/js/dom'
+// 每一个锚点的高度，右边点击的锚点A-B,B-C....每个字符之间的高度（字体高度加上padding的值）
+const ANCHOR_HRIGHT = 18
 export default {
+  // this.touch可以让onShortcutTouchStart和onShortcutTouchMove共享数据
+  // 为什么使用created来记录值，因为我们不需要操作dom，不需要监听数据变化
+  created() {
+    this.touch = {}
+  },
   components: {
     Scroll
   },
@@ -23,6 +40,36 @@ export default {
     data: {
       type: Array,
       default: []
+    }
+  },
+  computed: {
+    shortcutList() {
+      return this.data.map((group) => {
+        return group.title.substr(0, 1)
+      })
+    }
+  },
+  methods: {
+    onShortcutTouchStart(element) {
+      let anchorIndex = getData(element.target, 'index')
+      // 第一次触碰的时的位置
+      let firstTouch = element.touches[0]
+      this.touch.y1 = firstTouch.pageY
+      // 记录点击的位置
+      this.touch.anchorIndex = anchorIndex
+      this._scrollTo(anchorIndex)
+    },
+    onShortcutTouchMove(element) {
+      let firstTouch = element.touches[0]
+      this.touch.y2 = firstTouch.pageY
+      // this.touch.y2 - this.touch.y1是滑动后，第一个节点和当前节点的偏差值，|0是取整的意思
+      let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HRIGHT | 0
+      let anchorIndex = this.touch.anchorIndex + delta
+      this._scrollTo(anchorIndex)
+    },
+    _scrollTo(index) {
+      // this.$refs.listGroup[index]能够获取需要滚动到这的dom节点
+      this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
     }
   }
 }
