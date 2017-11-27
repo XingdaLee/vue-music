@@ -24,6 +24,9 @@
         </li>
       </ul>
     </div>
+    <div class="list-fixed" v-show="fixedTitle">
+      <h1 class="fixed-title">{{fixedTitle}}</h1>
+    </div>
   </Scroll>
 </template>
 <script type="text/ecmascript-6">
@@ -62,6 +65,13 @@ export default {
         // 截取第一个字符
         return group.title.substr(0, 1)
       })
+    },
+    fixedTitle() {
+      // 上边界的限制，防止下拉的时候，两个热门的汉字重叠
+      if (this.scrollY > 0) {
+        return ''
+      }
+      return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
     }
   },
   methods: {
