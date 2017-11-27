@@ -1,6 +1,8 @@
 <template>
   <div class="singer">
-    <ListView :data="singers"></ListView>
+    <!-- selectSinger是接收来自listview的派发事件 -->
+    <ListView @select="selectSinger" :data="singers"></ListView>
+    <router-view></router-view>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -23,6 +25,11 @@ export default {
     this._getSinderList()
   },
   methods: {
+    selectSinger(singer) {
+      this.$router.push({
+        path: `/singer/${singer.id}`
+      })
+    },
     _getSinderList() {
       getSingerList().then((res) => {
         if (res.code === ERR_OK) {
