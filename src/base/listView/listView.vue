@@ -24,7 +24,7 @@
         </li>
       </ul>
     </div>
-    <div class="list-fixed" v-show="fixedTitle">
+    <div class="list-fixed" v-show="fixedTitle" ref="fixed">
       <h1 class="fixed-title">{{fixedTitle}}</h1>
     </div>
   </Scroll>
@@ -34,6 +34,7 @@ import Scroll from 'base/scroll/scroll'
 import { getData } from 'common/js/dom'
 // 每一个锚点的高度，右边点击的锚点A-B,B-C....每个字符之间的高度（字体高度加上padding的值）
 const ANCHOR_HRIGHT = 18
+const TITLE_HEIGHT = 30
 export default {
   // this.touch可以让onShortcutTouchStart和onShortcutTouchMove共享数据
   // 为什么不适用data而是使用created来记录值，因为我们不需要操作dom，不需要监听数据变化
@@ -47,7 +48,8 @@ export default {
   data() {
     return {
       scrollY: -1,
-      currentIndex: 0
+      currentIndex: 0,
+      diff: -1
     }
   },
   components: {
@@ -76,6 +78,7 @@ export default {
   },
   methods: {
     onShortcutTouchStart(element) {
+      debugger
       // index点击的索引
       let anchorIndex = getData(element.target, 'index')
       // 第一次触碰的时的位置
@@ -150,11 +153,20 @@ export default {
         // 滚动到中间的时候,如果高度在newY的区间
         if (!height2 || (-newY > height1 && -newY < height2)) {
           this.currentIndex = i
+          this.diff = height2 + newY
           return
         }
       }
       // 滚动到底部，且-newY大于最后一个元素的上限
       this.currentIndex = listHeight.length - 2
+    },
+    diff(newVal) {
+      let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+      if (this.fixedTop === fixedTop) {
+        return
+      }
+      this.fixedTop = fixedTop
+      this.$refs.fixed.style.transform = 'translate3d(0,{fixedTop}px,0)'
     }
   }
 }
