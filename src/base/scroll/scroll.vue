@@ -6,6 +6,7 @@
 <script type="text/ecmascript-6">
 import BScroll from 'better-scroll'
 export default {
+  // probeType=1只能监听到一般慢速的滚动，快速(实时滚动)的是监听不到的，调用时设置为3可以
   props: {
     probeType: {
       type: Number,
@@ -18,6 +19,11 @@ export default {
     data: {
       type: Array,
       default: null
+    },
+    // default为是否监听滚动事件
+    listenScroll: {
+      type: Boolean,
+      default: false
     }
   },
   // 初始化的時候調用
@@ -35,6 +41,15 @@ export default {
         probeType: this.probeType,
         click: this.click
       })
+      // pos是位置
+      if (this.listenScroll) {
+        // this是vue的实例
+        let that = this
+        this.scroll.on('scroll', (pos) => {
+          // 派发一个scroll事件出去
+          that.$emit('scroll', pos)
+        })
+      }
     },
     // 下面是BScroll的方法代理
     enable() {
