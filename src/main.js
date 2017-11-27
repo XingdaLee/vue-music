@@ -7,6 +7,7 @@ import router from './router'
 // 必须在webpack下注册别名才可以使用
 import 'common/stylus/index.styl'
 import VueLazyload from 'vue-lazyload'
+import store from './store'
 
 fastclick.attach(document.body)
 Vue.config.productionTip = false
@@ -22,5 +23,6 @@ Vue.use(VueLazyload, {
 new Vue({
   el: '#app',
   router,
+  store,
   render: h => h(App)
 })
