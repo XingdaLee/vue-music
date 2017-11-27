@@ -1,178 +1,166 @@
 <template>
-  <!-- @scroll监听方法 -->
-  <!-- :listenScroll等是向scroll组件里传值 -->
-  <Scroll class="listview" :data="data" ref="listview" @scroll="scroll" :listenScroll=listenScroll :probeType="probeType">
+  <scroll @scroll="scroll"
+          :listen-scroll="listenScroll"
+          :probe-type="probeType"
+          :data="data"
+          class="listview"
+          ref="listview">
     <ul>
       <li v-for="group in data" class="list-group" :key="group.title" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
-        <ul>
-          <li class="list-group-item" v-for="item in group.items" :key="item.id">
+        <uL>
+          <li @click="selectItem(item)" v-for="item in group.items" :key="item.id" class="list-group-item">
             <img class="avatar" v-lazy="item.avatar">
             <span class="name">{{item.name}}</span>
           </li>
-        </ul>
+        </uL>
       </li>
     </ul>
-    <!-- touchstart和touchmove是BScroll的事件 -->
-    <!-- touchmove.stop.prevent 加prevent可以阻止事件冒泡，防止背景的滚动-->
     <div class="list-shortcut" @touchstart="onShortcutTouchStart" @touchmove.stop.prevent="onShortcutTouchMove">
       <ul>
-        <!-- 增加了扩展属性index，便于点击时获取节点 -->
-        <!-- 绑定一个class样式，当滑动时，在索引的区间时，索引值高亮 -->
-        <li class="item" :class="{'current': currentIndex === index}" v-for="(item, index) in shortcutList" :data-index="index" :key="item.id">
-          {{item}}
+        <li v-for="(item, index) in shortcutList" :data-index="index" class="item" :key="item.id"
+            :class="{'current':currentIndex===index}">{{item}}
         </li>
       </ul>
     </div>
-    <div class="list-fixed" v-show="fixedTitle" ref="fixed">
-      <h1 class="fixed-title">{{fixedTitle}}</h1>
+    <div class="list-fixed" ref="fixed" v-show="fixedTitle">
+      <div class="fixed-title">{{fixedTitle}} </div>
     </div>
-  </Scroll>
+    <div v-show="!data.length" class="loading-container">
+      <loading></loading>
+    </div>
+  </scroll>
 </template>
 <script type="text/ecmascript-6">
-import Scroll from 'base/scroll/scroll'
-import { getData } from 'common/js/dom'
-// 每一个锚点的高度，右边点击的锚点A-B,B-C....每个字符之间的高度（字体高度加上padding的值）
-const ANCHOR_HRIGHT = 18
-const TITLE_HEIGHT = 30
-export default {
-  // this.touch可以让onShortcutTouchStart和onShortcutTouchMove共享数据
-  // 为什么不适用data而是使用created来记录值，因为我们不需要操作dom，不需要监听数据变化
-  created() {
-    this.touch = {}
-    this.listenScroll = true
-    this.listHeight = []
-    this.probeType = 3
-  },
-  // currentIndex是哪个，哪个索引就高亮
-  data() {
-    return {
-      scrollY: -1,
-      currentIndex: 0,
-      diff: -1
-    }
-  },
-  components: {
-    Scroll
-  },
-  props: {
-    data: {
-      type: Array,
-      default: []
-    }
-  },
-  computed: {
-    shortcutList() {
-      return this.data.map((group) => {
-        // 截取第一个字符
-        return group.title.substr(0, 1)
-      })
-    },
-    fixedTitle() {
-      // 上边界的限制，防止下拉的时候，两个热门的汉字重叠
-      if (this.scrollY > 0) {
-        return ''
+  import Scroll from 'base/scroll/scroll'
+  import Loading from 'base/loading/loading'
+  import {getData} from 'common/js/dom'
+  const TITLE_HEIGHT = 30
+  const ANCHOR_HEIGHT = 18
+  export default {
+    props: {
+      data: {
+        type: Array,
+        default: []
       }
-      return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
-    }
-  },
-  methods: {
-    onShortcutTouchStart(element) {
-      debugger
-      // index点击的索引
-      let anchorIndex = getData(element.target, 'index')
-      // 第一次触碰的时的位置
-      let firstTouch = element.touches[0]
-      this.touch.y1 = firstTouch.pageY
-      // 记录点击的位置
-      this.touch.anchorIndex = anchorIndex
-      this._scrollTo(anchorIndex)
     },
-    // 手指放在索引列表上滑动时触发
-    onShortcutTouchMove(element) {
-      let firstTouch = element.touches[0]
-      this.touch.y2 = firstTouch.pageY
-      // this.touch.y2 - this.touch.y1是滑动后，第一个节点和当前节点的偏差值，|0是取整的意思
-      // delta获取滚动几个元素
-      let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HRIGHT | 0
-      let anchorIndex = parseInt(this.touch.anchorIndex) + delta
-      this._scrollTo(anchorIndex)
-    },
-    // 从scroll.vue里获得的参数。实时获取BScroll滚动Y的距离，实现滚动时联动右边的索引列表
-    scroll(pos) {
-      this.scrollY = pos.y
-    },
-    _scrollTo(index) {
-      // 没有Index时表示点击的位置是无意义的，比如索引列表下的空白区域
-      if (!index && index !== 0) {
-        return
+    computed: {
+      shortcutList() {
+        return this.data.map((group) => {
+          return group.title.substr(0, 1)
+        })
+      },
+      fixedTitle() {
+        if (this.scrollY > 0) {
+          return ''
+        }
+        return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
-      // 边界条件的处理
-      if (index < 0) {
-        index = 0
-      } else if (index > this.listHeight.length - 2) {
-        index = this.listHeight.length - 2
-      }
-      this.scrollY = -this.listHeight[index]
-      // this.$refs.listGroup[index]能够获取需要滚动到这的dom节点
-      // 0是动画时间，0是没有动画
-      this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
     },
-    // 当watch监听到数据变化时，计算高度
-    // this.listHeight记录从第一个元素到最后一个，每一个元素的高度
-    _calculateHeight() {
-      this.listHeight = []
-      const list = this.$refs.listGroup
-      let height = 0
-      this.listHeight.push(height)
-      for (let i = 0; i < list.length; i++) {
-        let item = list[i]
-        height += item.clientHeight
-        this.listHeight.push(height)
-      }
-    }
-  },
-  watch: {
-    // 当监听到数据变化时
     data() {
-      setTimeout(() => {
-        this._calculateHeight()
-      }, 20)
+      return {
+        scrollY: -1,
+        currentIndex: 0,
+        diff: -1
+      }
     },
-    // 思想是，判断scrollY落在哪一个区间
-    scrollY(newY) {
-      const listHeight = this.listHeight
-      for (let i = 0; i < listHeight.length; i++) {
-        let height1 = listHeight[i]
-        let height2 = listHeight[i + 1]
-        // 当滚动到顶部时
+    created() {
+      this.probeType = 3
+      this.listenScroll = true
+      this.touch = {}
+      this.listHeight = []
+    },
+    methods: {
+      selectItem(item) {
+        this.$emit('select', item)
+      },
+      onShortcutTouchStart(e) {
+        let anchorIndex = getData(e.target, 'index')
+        let firstTouch = e.touches[0]
+        this.touch.y1 = firstTouch.pageY
+        this.touch.anchorIndex = anchorIndex
+        this._scrollTo(anchorIndex)
+      },
+      onShortcutTouchMove(e) {
+        let firstTouch = e.touches[0]
+        this.touch.y2 = firstTouch.pageY
+        let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0
+        let anchorIndex = parseInt(this.touch.anchorIndex) + delta
+        this._scrollTo(anchorIndex)
+      },
+      refresh() {
+        this.$refs.listview.refresh()
+      },
+      scroll(pos) {
+        this.scrollY = pos.y
+      },
+      _calculateHeight() {
+        this.listHeight = []
+        const list = this.$refs.listGroup
+        let height = 0
+        this.listHeight.push(height)
+        for (let i = 0; i < list.length; i++) {
+          let item = list[i]
+          height += item.clientHeight
+          this.listHeight.push(height)
+        }
+      },
+      _scrollTo(index) {
+        if (!index && index !== 0) {
+          return
+        }
+        if (index < 0) {
+          index = 0
+        } else if (index > this.listHeight.length - 2) {
+          index = this.listHeight.length - 2
+        }
+        this.scrollY = -this.listHeight[index]
+        this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
+      }
+    },
+    watch: {
+      data() {
+        setTimeout(() => {
+          this._calculateHeight()
+        }, 20)
+      },
+      scrollY(newY) {
+        const listHeight = this.listHeight
+        // 当滚动到顶部，newY>0
         if (newY > 0) {
           this.currentIndex = 0
           return
         }
-        // 滚动到中间的时候,如果高度在newY的区间
-        if (!height2 || (-newY > height1 && -newY < height2)) {
-          this.currentIndex = i
-          this.diff = height2 + newY
+        // 在中间部分滚动
+        for (let i = 0; i < listHeight.length - 1; i++) {
+          let height1 = listHeight[i]
+          let height2 = listHeight[i + 1]
+          if (-newY >= height1 && -newY < height2) {
+            this.currentIndex = i
+            this.diff = height2 + newY
+            return
+          }
+        }
+        // 当滚动到底部，且-newY大于最后一个元素的上限
+        this.currentIndex = listHeight.length - 2
+      },
+      diff(newVal) {
+        let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+        if (this.fixedTop === fixedTop) {
           return
         }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0,${fixedTop}px,0)`
       }
-      // 滚动到底部，且-newY大于最后一个元素的上限
-      this.currentIndex = listHeight.length - 2
     },
-    diff(newVal) {
-      let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
-      if (this.fixedTop === fixedTop) {
-        return
-      }
-      this.fixedTop = fixedTop
-      this.$refs.fixed.style.transform = 'translate3d(0,{fixedTop}px,0)'
+    components: {
+      Scroll,
+      Loading
     }
   }
-}
 </script>
-<style lang="stylus" rel="stylesheet/stylus">
- @import "~common/stylus/variable"
+<style scoped lang="stylus" rel="stylesheet/stylus">
+  @import "~common/stylus/variable"
   .listview
     position: relative
     width: 100%
