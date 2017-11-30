@@ -23,3 +23,33 @@ export function getData(el, name, val) {
     return el.getAttribute(name)
   }
 }
+
+// 在js中，自动给this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`这样的属性添加
+// webkit 变成 this.$refs.filter.style['webkitBackdrop-filter'] = `blur(${blur}px)`
+let elementStyle = document.createElement('div').style
+// 立即执行函数
+let vendor = (() => {
+  let transformNames = {
+    webkit: 'webkitTransform',
+    Moz: 'MozTransform', // 火狐
+    O: 'OTransform', // oper
+    ms: 'msTransform', // IE
+    standard: 'transform' // 什么都不带
+  }
+  for (let key in transformNames) {
+    if (elementStyle[transformNames[key]] !== undefined) {
+      return key
+    }
+  }
+  return false
+})()
+
+export function prefixStyle(style) {
+  if (vendor === false) {
+    return false
+  }
+  if (vendor === 'standard') {
+    return style
+  }
+  return vendor + style.charAt(0).toUpperCase() + style.substr(1)
+}
