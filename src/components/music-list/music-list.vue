@@ -40,6 +40,7 @@ export default {
       return `background-image:url(${this.bgImage})`
     }
   },
+  // el 被新创建的 vm.$el 替换，并挂载到实例上去之后调用mounted。
   mounted() {
     // 如果不给scroll的top高度，scroll会覆盖整个页面。高度等于当前页面背景图的高度
     this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`
