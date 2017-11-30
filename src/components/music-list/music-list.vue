@@ -7,8 +7,10 @@
    <div class="bg-image" :style="bgStyle" ref="bgImage">
      <div class="filter"></div>
    </div>
+   <div class="bg-layer" ref="layer"></div>
    <!-- ref="list"拿到Scroll的引用 -->
-   <scroll :data="songs" class="list" ref="list">
+   <!-- @scroll 触发  scroll的方法-->
+   <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll = "listenScroll" :data="songs" class="list" ref="list">
      <div class="song-list-wrapper">
        <song-list :songs="songs"></song-list>
      </div>
@@ -18,6 +20,7 @@
 <script type="text/ecmascript-6">
 import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
+const RESERVED_HEIGHT = 40
 // props接收从别的组件调用时传过来的数据
 export default {
   props: {
@@ -34,16 +37,40 @@ export default {
       default: ''
     }
   },
+  data() {
+    return {
+      scrollY: 0
+    }
+  },
   // computed 计算属性
   computed: {
     bgStyle() {
       return `background-image:url(${this.bgImage})`
     }
   },
+  created() {
+    this.probeType = 3
+    this.listenScroll = true
+  },
+  methods: {
+    // 实时的拿到scrollY的值
+    scroll(pos) {
+      this.scrollY = pos.y
+    }
+  },
+  watch: {
+    scrollY(newY) {
+      let tranlateY = Math.max(this.minTranslateY, newY)
+      this.$refs.layer.style['transform'] = `translate3d(0,${tranlateY}px,0)`
+      this.$refs.layer.style['webkitTransform'] = `translate3d(0,${tranlateY}px,0)`
+    }
+  },
   // el 被新创建的 vm.$el 替换，并挂载到实例上去之后调用mounted。
   mounted() {
+    this.imageHeight = this.$refs.bgImage.clientHeight
+    this.minTranslateY = -this.imageHeight + RESERVED_HEIGHT
     // 如果不给scroll的top高度，scroll会覆盖整个页面。高度等于当前页面背景图的高度
-    this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`
+    this.$refs.list.$el.style.top = `${this.imageHeight}px`
   },
   components: {
     Scroll,
@@ -130,7 +157,6 @@ export default {
       top: 0
       bottom: 0
       width: 100%
-      overflow: hidden
       background: $color-background
       .song-list-wrapper
         padding: 20px 30px
