@@ -4,35 +4,52 @@
      <i class="icon-back"></i>
    </div>
    <div class="title" v-html="title"></div>
-   <div class="bg-image" :style="bgStyle">
+   <div class="bg-image" :style="bgStyle" ref="bgImage">
      <div class="filter"></div>
    </div>
+   <!-- ref="list"拿到Scroll的引用 -->
+   <scroll :data="songs" class="list" ref="list">
+     <div class="song-list-wrapper">
+       <song-list :songs="songs"></song-list>
+     </div>
+   </scroll>
  </div>
 </template>
 <script type="text/ecmascript-6">
+import Scroll from 'base/scroll/scroll'
+import SongList from 'base/song-list/song-list'
 // props接收从别的组件调用时传过来的数据
-  export default {
-    props: {
-      bgImage: {
-        type: String,
-        default: ''
-      },
-      songs: {
-        type: Array,
-        default: []
-      },
-      title: {
-        type: String,
-        default: ''
-      }
+export default {
+  props: {
+    bgImage: {
+      type: String,
+      default: ''
     },
-    // computed 计算属性
-    computed: {
-      bgStyle() {
-        return `background-image:url(${this.bgImage})`
-      }
+    songs: {
+      type: Array,
+      default: []
+    },
+    title: {
+      type: String,
+      default: ''
     }
+  },
+  // computed 计算属性
+  computed: {
+    bgStyle() {
+      return `background-image:url(${this.bgImage})`
+    }
+  },
+  // el 被新创建的 vm.$el 替换，并挂载到实例上去之后调用mounted。
+  mounted() {
+    // 如果不给scroll的top高度，scroll会覆盖整个页面。高度等于当前页面背景图的高度
+    this.$refs.list.$el.style.top = `${this.$refs.bgImage.clientHeight}px`
+  },
+  components: {
+    Scroll,
+    SongList
   }
+}
 </script>
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
@@ -113,6 +130,7 @@
       top: 0
       bottom: 0
       width: 100%
+      overflow: hidden
       background: $color-background
       .song-list-wrapper
         padding: 20px 30px
