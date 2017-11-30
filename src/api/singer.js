@@ -28,7 +28,7 @@ export function getSingerDetail(singerid) {
     'singerid': singerid,
     'g_tk': 5381,
     'uin': 0,
-    'format': 'jsonp',
+    'format': 'json',
     'inCharset': 'utf-8',
     'outCharset': 'utf-8',
     'notice': 0,
@@ -37,8 +37,7 @@ export function getSingerDetail(singerid) {
     'order': 'listen',
     'from': 'h5',
     'num': 15,
-    'begin': 0,
-    '_': 1511942715495
+    'begin': 0
   })
   return jsonp(url, data, options)
 }
