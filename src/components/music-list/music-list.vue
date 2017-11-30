@@ -5,7 +5,7 @@
    </div>
    <div class="title" v-html="title"></div>
    <div class="bg-image" :style="bgStyle" ref="bgImage">
-     <div class="filter"></div>
+     <div class="filter" ref="filter"></div>
    </div>
    <div class="bg-layer" ref="layer"></div>
    <!-- ref="list"拿到Scroll的引用 -->
@@ -62,8 +62,25 @@ export default {
     scrollY(newY) {
       let tranlateY = Math.max(this.minTranslateY, newY)
       let zIndex = 0
+      // 下拉列表时放大image
+      let scale = 1
+      // 上拉的时候，高斯模糊效果
+      let blur = 0
       this.$refs.layer.style['transform'] = `translate3d(0,${tranlateY}px,0)`
       this.$refs.layer.style['webkitTransform'] = `translate3d(0,${tranlateY}px,0)`
+      // 放大的比例公式
+      const precent = Math.abs(newY / this.imageHeight)
+      // 上拉的时候
+      if (newY > 0) {
+        scale = 1 + precent
+        zIndex = 10
+      } else {
+        blur = Math.min(20 * precent, 20)
+      }
+      // 高斯模糊效果只能iphone可以看到
+      this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
+      this.$refs.filter.style['webkitBackdrop-filter'] = `blur(${blur}px)`
+      // 上下滑动列表时，防止列表遮盖title
       if (newY < this.minTranslateY) {
         zIndex = 10
         this.$refs.bgImage.style.paddingTop = 0
@@ -73,6 +90,8 @@ export default {
         this.$refs.bgImage.style.height = 0
       }
       this.$refs.bgImage.style.zIndex = zIndex
+      this.$refs.bgImage.style['transform'] = `scale(${scale})`
+      this.$refs.bgImage.style['webkitTransform'] = `scale(${scale})`
     }
   },
   // el 被新创建的 vm.$el 替换，并挂载到实例上去之后调用mounted。
