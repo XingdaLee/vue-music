@@ -1,10 +1,16 @@
 <template>
  <div class="music-list">
-   <div class="back">
+   <div class="back" @click="back">
      <i class="icon-back"></i>
    </div>
    <div class="title" v-html="title"></div>
    <div class="bg-image" :style="bgStyle" ref="bgImage">
+     <div class="play-wrapper">
+       <div class="play" v-show="songs.length > 0" ref="playBtn">
+         <i class="icon-play"></i>
+         <span class="text">随机播放全部</span>
+       </div>
+     </div>
      <div class="filter" ref="filter"></div>
    </div>
    <div class="bg-layer" ref="layer"></div>
@@ -14,6 +20,9 @@
      <div class="song-list-wrapper">
        <song-list :songs="songs"></song-list>
      </div>
+     <div class="loading-container" v-show="!songs.length">
+       <loading></loading>
+     </div>
    </scroll>
  </div>
 </template>
@@ -21,6 +30,7 @@
 import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import { prefixStyle } from 'common/js/dom'
+import Loading from 'base/loading/loading'
 const RESERVED_HEIGHT = 40
 const transform = prefixStyle('transform')
 const backdrop = prefixStyle('backdrop-filter')
@@ -59,6 +69,9 @@ export default {
     // 实时的拿到scrollY的值
     scroll(pos) {
       this.scrollY = pos.y
+    },
+    back() {
+      this.$router.back()
     }
   },
   watch: {
@@ -87,12 +100,15 @@ export default {
       this.$refs.filter.style[backdrop] = `blur(${blur}px)`
       // 上下滑动列表时，防止列表遮盖title
       if (newY < this.minTranslateY) {
+        // 滚动到顶部时
         zIndex = 10
         this.$refs.bgImage.style.paddingTop = 0
         this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
+        this.$refs.playBtn.style.display = 'none'
       } else {
         this.$refs.bgImage.style.paddingTop = '70%'
         this.$refs.bgImage.style.height = 0
+        this.$refs.playBtn.style.display = ''
       }
       this.$refs.bgImage.style.zIndex = zIndex
       // this.$refs.bgImage.style['transform'] = `scale(${scale})`
@@ -109,7 +125,8 @@ export default {
   },
   components: {
     Scroll,
-    SongList
+    SongList,
+    Loading
   }
 }
 </script>
