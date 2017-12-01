@@ -18,7 +18,8 @@
    <!-- @scroll 触发  scroll的方法-->
    <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll = "listenScroll" :data="songs" class="list" ref="list">
      <div class="song-list-wrapper">
-       <song-list :songs="songs"></song-list>
+       <!-- @select方法来自base/song-list -->
+       <song-list @select="selectItem" :songs="songs"></song-list>
      </div>
      <div class="loading-container" v-show="!songs.length">
        <loading></loading>
@@ -31,6 +32,8 @@ import Scroll from 'base/scroll/scroll'
 import SongList from 'base/song-list/song-list'
 import { prefixStyle } from 'common/js/dom'
 import Loading from 'base/loading/loading'
+// 数据必须在store中的actions commit后才可使用 mapActions
+import { mapActions } from 'vuex'
 const RESERVED_HEIGHT = 40
 const transform = prefixStyle('transform')
 const backdrop = prefixStyle('backdrop-filter')
@@ -72,7 +75,18 @@ export default {
     },
     back() {
       this.$router.back()
-    }
+    },
+    selectItem(item, index) {
+      // 这里给mapActions中的selectPlay传值 ->store/actions
+      this.selectPlay({
+        list: this.songs,
+        index: index
+      })
+    },
+    // selectPlay是store/actions里定义的方法
+    ...mapActions([
+      'selectPlay'
+    ])
   },
   watch: {
     scrollY(newY) {
