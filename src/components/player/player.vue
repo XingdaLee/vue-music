@@ -101,11 +101,11 @@ export default {
         },
         // 滚动到60%
         60: {
-          transform: `translate3d(0, 0, 0) scale(1.1)`
+          transform: 'translate3d(0, 0, 0) scale(1.1)'
         },
         // 100%时正常状态
         100: {
-          transform: `translate3d(0, 0, 0) scale(1)`
+          transform: 'translate3d(0, 0, 0) scale(1)'
         }
       }
       animations.registerAnimation({
@@ -132,7 +132,14 @@ export default {
       this.$refs.cdWrapper.style.transtion = 'all 0.4s'
       const {x, y, scale} = this._getPosAndScale()
       this.$refs.cdWrapper.style[transform] = `translate3d(${x}px, ${y}px, 0) scale(${scale})`
-      this.$refs.cdWrapper.addEventListener('transitionend', done)
+      // 错误的用法，会导致缩小在回弹放大时 不显示图片
+      // this.$refs.cdWrapper.addEventListener('transitionend', done)
+      const timer = setTimeout(done, 400)
+      // 监听当transition动画执行完毕后，浏览器会自动调用transitionend方法
+      this.$refs.cdWrapper.addEventListener('transitionend', () => {
+        clearTimeout(timer)
+        done()
+      })
     },
     afterLeave() {
       this.$refs.cdWrapper.style.transtion = ''
@@ -235,24 +242,23 @@ export default {
             left: 10%
             top: 0
             width: 80%
+            box-sizing: border-box
             height: 100%
             .cd
               width: 100%
               height: 100%
-              box-sizing: border-box
-              border: 10px solid rgba(255, 255, 255, 0.1)
               border-radius: 50%
-              &.play
-                animation: rotate 20s linear infinite
-              &.pause
-                animation-play-state: paused
               .image
                 position: absolute
                 left: 0
                 top: 0
                 width: 100%
                 height: 100%
+                box-sizing: border-box
                 border-radius: 50%
+                border: 10px solid rgba(255, 255, 255, 0.1)
+              .play
+                animation: rotate 20s linear infinite
           .playing-lyric-wrapper
             width: 80%
             margin: 30px auto 0 auto
@@ -280,6 +286,11 @@ export default {
               font-size: $font-size-medium
               &.current
                 color: $color-text
+            .pure-music
+              padding-top: 50%
+              line-height: 32px
+              color: $color-text-l
+              font-size: $font-size-medium
       .bottom
         position: absolute
         bottom: 50px
@@ -365,13 +376,17 @@ export default {
       .icon
         flex: 0 0 40px
         width: 40px
+        height: 40px
         padding: 0 10px 0 20px
-        img
-          border-radius: 50%
-          &.play
-            animation: rotate 10s linear infinite
-          &.pause
-            animation-play-state: paused
+        .imgWrapper
+          height: 100%
+          width: 100%
+          img
+            border-radius: 50%
+            &.play
+              animation: rotate 10s linear infinite
+            &.pause
+              animation-play-state: paused
       .text
         display: flex
         flex-direction: column
