@@ -1,7 +1,12 @@
 <template>
   <div class="player" v-show="playlist.length > 0">
-    <!-- transition是vue里的动画组件,根据name去编写样式 -->
-    <transition name="normal">
+    <!-- transition是vue里的动画组件,根据name去编写css样式 -->
+    <!-- @enter等都是钩子函数，需要在methods里定义 -->
+    <transition name="normal" 
+                @enter="enter" 
+                @after-enter="afterEnter"
+                @leave="leave"
+                @after-leave="afterLeave">
       <!-- 展开的播放器 -->
       <div class="normal-player" v-show="fullScreen">
         <div class="background">
@@ -16,7 +21,7 @@
         </div>
         <div class="middle">
           <div class="middle-l">
-            <div class="cd-wrapper">
+            <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd">
                 <img :src="currentSong.image" alt="" class="image">
               </div>
@@ -65,6 +70,9 @@
 <script type="text/ecmascript-6">
 // 获取vuex中已经赋值好的数据
 import { mapGetters, mapMutations } from 'vuex'
+import animations from 'create-keyframe-animation'
+import { prefixStyle } from 'common/js/dom'
+const transform = prefixStyle('transform')
 export default {
   computed: {
     ...mapGetters([
@@ -80,6 +88,79 @@ export default {
     },
     open() {
       this.setFullScreen(true)
+    },
+    // vue2.0的动画语法，el是动画的dom，done是回调函数，done执行的时候会跳到下一个函数afterEnter
+    // 从小唱片飞到大唱片的动画效果
+    enter(el, done) {
+      // css3动画，必须得知道动画的轨迹，也就是横坐标和纵坐标的位置，需要js去动态的计算（使用第三方库）
+      const {x, y, scale} = this._getPosAndScale()
+      let animation = {
+        // 初始位置
+        0: {
+          transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+        },
+        // 滚动到60%
+        60: {
+          transform: `translate3d(0, 0, 0) scale(1.1)`
+        },
+        // 100%时正常状态
+        100: {
+          transform: `translate3d(0, 0, 0) scale(1)`
+        }
+      }
+      animations.registerAnimation({
+        name: 'move',
+        animation,
+        presets: {
+          // 动画间隔
+          duration: 400,
+          // 缓动
+          easing: 'linear'
+        }
+      })
+      // 运行动画，move是动画的方式。动画执行完后会执行done
+      animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+    },
+    // 动画完成时，取消动画
+    afterEnter() {
+      animations.unregisterAnimation('move')
+      this.$refs.cdWrapper.style.animation = ''
+    },
+    // done执行的时候会跳到下一个函数afterLeave
+    // 缩小时，大唱片的动画效果
+    leave(el, done) {
+      this.$refs.cdWrapper.style.transtion = 'all 0.4s'
+      const {x, y, scale} = this._getPosAndScale()
+      this.$refs.cdWrapper.style[transform] = `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+      this.$refs.cdWrapper.addEventListener('transitionend', done)
+    },
+    afterLeave() {
+      this.$refs.cdWrapper.style.transtion = ''
+      this.$refs.cdWrapper.style[transform] = ''
+    },
+    // 获取初始缩放的尺寸,偏移的方式都是中心点到中心点的偏移
+    _getPosAndScale() {
+      // 底部小唱片图标的宽度
+      const targetWidth = 40
+      // 底部小唱片图标中心坐标左部离边框的偏移宽度
+      const paddingLeft = 40
+      // 底部小唱片图标中心坐标底部偏移宽度
+      const paddingBottom = 30
+      // 中间大唱片容器到顶部的距离
+      const paddingTop = 80
+      // 因为CD大唱片的宽度是80%，得到CD的宽度
+      const width = window.innerWidth * 0.8
+      // 初始的缩放比例
+      const scale = targetWidth / width
+      // 初始的X坐标，以为目标点在大唱片的中心（值为0），所以下面的值应该为负数
+      const x = -(window.innerWidth / 2 - paddingLeft)
+      // 初始的y值
+      const y = window.innerHeight - paddingTop - width / 2 - paddingBottom
+      return {
+        x,
+        y,
+        scale
+      }
     },
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN'
