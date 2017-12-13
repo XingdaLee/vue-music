@@ -22,8 +22,8 @@
         <div class="middle">
           <div class="middle-l">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
-                <img :src="currentSong.image" alt="" class="image">
+              <div class="cd" :class="cdCls">
+                <img :src="currentSong.image" class="image">
               </div>
             </div>
           </div>
@@ -37,7 +37,8 @@
               <i class="icon-prev"></i>
             </div>
             <div class="icon i-center">
-              <i class="icon-play"></i>
+              <!-- class根据数据状态去改变 -->
+              <i @click="togglePlaying" :class="playIcon"></i>
             </div>
             <div class="icon i-right">
               <i class="icon-next"></i>
@@ -53,18 +54,23 @@
       <!-- 缩小的播放器 -->
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img :src="currentSong.image" alt="" width="40" height="40">
+          <img :class="cdCls" :src="currentSong.image" alt="" width="40" height="40">
         </div>
         <div class="text">
           <h2 class="name" v-html="currentSong.name"></h2>
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
-        <div class="control"></div>
+        <div class="control">
+          <!-- @click.stop可以阻止事件冒泡，防止触发父元素的事件 -->
+          <i @click.stop="togglePlaying" :class="miniIcon"></i>
+        </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <!-- 利用h5的播放方法，根据条件选择调用play播放的方法 -->
+    <audio ref="audio" :src="currentSong.url"></audio>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -74,11 +80,26 @@ import animations from 'create-keyframe-animation'
 import { prefixStyle } from 'common/js/dom'
 const transform = prefixStyle('transform')
 export default {
+  // computed: Vue检测到数据发生变动时就会执行对相应数据有引用的函数。
   computed: {
+    // 暂停和播放按钮的样式
+    playIcon() {
+      return this.playing ? 'icon-pause' : 'icon-play'
+    },
+    // mini播放列表播放和暂停时的样式
+    miniIcon() {
+      return this.playing ? 'icon-pause-mini' : 'icon-play-mini'
+    },
+    // 大图片旋转
+    cdCls() {
+      return this.playing ? 'play' : 'play pause'
+    },
+    // 数据映射来自:src\store\getters.js ,用什么就取什么
     ...mapGetters([
       'fullScreen',
       'playlist',
-      'currentSong'
+      'currentSong',
+      'playing'
     ])
   },
   methods: {
@@ -169,15 +190,38 @@ export default {
         scale
       }
     },
+    // 这里的数据映射到mutations-types.js里的数据
     ...mapMutations({
-      setFullScreen: 'SET_FULL_SCREEN'
-    })
+      setFullScreen: 'SET_FULL_SCREEN',
+      setPlayingState: 'SET_PLAYING_STATE'
+    }),
+    // 调用setPlayingState改变播放状态
+    togglePlaying() {
+      this.setPlayingState(!this.playing)
+    }
+  },
+  watch: {
+    // 监听当前歌曲是否改变，改变时重新播放
+    currentSong() {
+      // this.$refs.audio.play()不能直接调用，因为调用的同时，也在src资源文件，加个延迟即可
+      this.$nextTick(() => {
+        this.$refs.audio.play()
+      })
+    },
+    // 监听歌曲的播放状态，audio.pause()是暂停播放
+    playing(newPlaying) {
+      const audio = this.$refs.audio
+      this.$nextTick(() => {
+        newPlaying ? audio.play() : audio.pause()
+      })
+    }
   }
 }
 </script>
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
   @import "~common/stylus/mixin"
+
   .player
     .normal-player
       position: fixed
@@ -242,23 +286,24 @@ export default {
             left: 10%
             top: 0
             width: 80%
-            box-sizing: border-box
             height: 100%
             .cd
               width: 100%
               height: 100%
+              box-sizing: border-box
+              border: 10px solid rgba(255, 255, 255, 0.1)
               border-radius: 50%
+              &.play
+                animation: rotate 20s linear infinite
+              &.pause
+                animation-play-state: paused
               .image
                 position: absolute
                 left: 0
                 top: 0
                 width: 100%
                 height: 100%
-                box-sizing: border-box
                 border-radius: 50%
-                border: 10px solid rgba(255, 255, 255, 0.1)
-              .play
-                animation: rotate 20s linear infinite
           .playing-lyric-wrapper
             width: 80%
             margin: 30px auto 0 auto
@@ -286,11 +331,6 @@ export default {
               font-size: $font-size-medium
               &.current
                 color: $color-text
-            .pure-music
-              padding-top: 50%
-              line-height: 32px
-              color: $color-text-l
-              font-size: $font-size-medium
       .bottom
         position: absolute
         bottom: 50px
@@ -376,17 +416,13 @@ export default {
       .icon
         flex: 0 0 40px
         width: 40px
-        height: 40px
         padding: 0 10px 0 20px
-        .imgWrapper
-          height: 100%
-          width: 100%
-          img
-            border-radius: 50%
-            &.play
-              animation: rotate 10s linear infinite
-            &.pause
-              animation-play-state: paused
+        img
+          border-radius: 50%
+          &.play
+            animation: rotate 10s linear infinite
+          &.pause
+            animation-play-state: paused
       .text
         display: flex
         flex-direction: column
