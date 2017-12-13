@@ -34,14 +34,14 @@
               <i class="icon-sequence"></i>
             </div>
             <div class="icon i-left">
-              <i class="icon-prev"></i>
+              <i @click="prev" class="icon-prev"></i>
             </div>
             <div class="icon i-center">
               <!-- class根据数据状态去改变 -->
               <i @click="togglePlaying" :class="playIcon"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-next"></i>
+              <i @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
               <i class="icon icon-not-favorite"></i>
@@ -70,7 +70,8 @@
       </div>
     </transition>
     <!-- 利用h5的播放方法，根据条件选择调用play播放的方法 -->
-    <audio ref="audio" :src="currentSong.url"></audio>
+    <!-- @canplay当歌曲加载完成时会调用ready方法 -->
+    <audio ref="audio" :src="currentSong.url" @canplay="ready"></audio>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -80,6 +81,12 @@ import animations from 'create-keyframe-animation'
 import { prefixStyle } from 'common/js/dom'
 const transform = prefixStyle('transform')
 export default {
+  // 设定标志位，判断歌曲url资源是否已经加载完成，防止多次点击时浏览器报错
+  data() {
+    return {
+      songReady: false
+    }
+  },
   // computed: Vue检测到数据发生变动时就会执行对相应数据有引用的函数。
   computed: {
     // 暂停和播放按钮的样式
@@ -99,7 +106,8 @@ export default {
       'fullScreen',
       'playlist',
       'currentSong',
-      'playing'
+      'playing',
+      'currentIndex'
     ])
   },
   methods: {
@@ -193,11 +201,46 @@ export default {
     // 这里的数据映射到mutations-types.js里的数据
     ...mapMutations({
       setFullScreen: 'SET_FULL_SCREEN',
-      setPlayingState: 'SET_PLAYING_STATE'
+      setPlayingState: 'SET_PLAYING_STATE',
+      setCurrentIndex: 'SET_CURRENT_INDEX'
     }),
     // 调用setPlayingState改变播放状态
     togglePlaying() {
       this.setPlayingState(!this.playing)
+    },
+    next() {
+      if (!this.songReady) {
+        return
+      }
+      let index = this.currentIndex + 1
+      if (index === this.playlist.length) {
+        index = 0
+      }
+      this.setCurrentIndex(index)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      this.songReady = false
+    },
+    prev() {
+      if (!this.songReady) {
+        return
+      }
+      let index = this.currentIndex - 1
+      if (index === -1) {
+        index = this.playlist.length - 1
+      }
+      this.setCurrentIndex(index)
+      if (!this.playing) {
+        this.togglePlaying()
+      }
+      this.songReady = false
+    },
+    ready() {
+      this.songReady = true
+    },
+    error() {
+
     }
   },
   watch: {
