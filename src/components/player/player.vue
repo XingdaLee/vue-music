@@ -29,6 +29,11 @@
           </div>
         </div>
         <div class="bottom">
+          <div class="progress-wrapper">
+            <span class="time time-l">{{format(currentTime)}}</span>
+            <div class="progree-bar-wrapper"></div>
+            <span class="time time-r">{{format(currentSong.duration)}}</span>
+          </div>
           <div class="operators">
             <div class="icon i-left">
               <i class="icon-sequence"></i>
@@ -71,7 +76,12 @@
     </transition>
     <!-- 利用h5的播放方法，根据条件选择调用play播放的方法 -->
     <!-- @canplay当歌曲加载完成时会调用ready方法 -->
-    <audio ref="audio" :src="currentSong.url" @canplay="ready"></audio>
+    <!-- @timeupdate歌曲播放的时候会派发事件，调用updateTime -->
+    <audio ref="audio" :src="currentSong.url" 
+      @canplay="ready" 
+      @error="error"
+      @timeupdate="updateTime">
+    </audio>
   </div>
 </template>
 <script type="text/ecmascript-6">
@@ -84,7 +94,8 @@ export default {
   // 设定标志位，判断歌曲url资源是否已经加载完成，防止多次点击时浏览器报错
   data() {
     return {
-      songReady: false
+      songReady: false,
+      currentTime: 0
     }
   },
   // computed: Vue检测到数据发生变动时就会执行对相应数据有引用的函数。
@@ -245,6 +256,27 @@ export default {
     // 歌曲加载失败时，为了不影响使用
     error() {
       this.songReady = true
+    },
+    // 格式化时间
+    format(interval) {
+      interval = interval | 0
+      // 获取分钟
+      const minute = interval / 60 | 0
+      const second = this._pad(interval % 60)
+      return `${minute}:${second}`
+    },
+    // 此方法是让秒的时间自动补一个0，变成两位数。num表示传过来的数字，n表示num字符串的长度，默认2
+    _pad(num, n = 2) {
+      let len = num.toString().length
+      if (len < n) {
+        num = '0' + num
+        len++
+      }
+      return num
+    },
+    updateTime(ele) {
+      // ele里是audio派发过来的相关数据
+      this.currentTime = ele.target.currentTime
     }
   },
   watch: {
