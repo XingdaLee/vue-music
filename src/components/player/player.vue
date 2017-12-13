@@ -33,14 +33,14 @@
             <div class="icon i-left">
               <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
+            <div class="icon i-left" :class="disableCls">
               <i @click="prev" class="icon-prev"></i>
             </div>
-            <div class="icon i-center">
+            <div class="icon i-center" :class="disableCls">
               <!-- class根据数据状态去改变 -->
               <i @click="togglePlaying" :class="playIcon"></i>
             </div>
-            <div class="icon i-right">
+            <div class="icon i-right" :class="disableCls">
               <i @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
@@ -89,6 +89,9 @@ export default {
   },
   // computed: Vue检测到数据发生变动时就会执行对相应数据有引用的函数。
   computed: {
+    disableCls() {
+      return this.songReady ? '' : 'disable'
+    },
     // 暂停和播放按钮的样式
     playIcon() {
       return this.playing ? 'icon-pause' : 'icon-play'
@@ -239,8 +242,9 @@ export default {
     ready() {
       this.songReady = true
     },
+    // 歌曲加载失败时，为了不影响使用
     error() {
-
+      this.songReady = true
     }
   },
   watch: {
