@@ -31,7 +31,9 @@
         <div class="bottom">
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
-            <div class="progree-bar-wrapper"></div>
+            <div class="progress-bar-wrapper">
+              <ProgressBar :percent= "percent"></ProgressBar>
+            </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
           <div class="operators">
@@ -90,7 +92,11 @@ import { mapGetters, mapMutations } from 'vuex'
 import animations from 'create-keyframe-animation'
 import { prefixStyle } from 'common/js/dom'
 const transform = prefixStyle('transform')
+import ProgressBar from 'base/progress-bar/progress-bar'
 export default {
+  components: {
+    ProgressBar
+  },
   // 设定标志位，判断歌曲url资源是否已经加载完成，防止多次点击时浏览器报错
   data() {
     return {
@@ -100,6 +106,10 @@ export default {
   },
   // computed: Vue检测到数据发生变动时就会执行对相应数据有引用的函数。
   computed: {
+    // 当前歌曲的播放比例
+    percent() {
+      return this.currentTime / this.currentSong.duration
+    },
     disableCls() {
       return this.songReady ? '' : 'disable'
     },

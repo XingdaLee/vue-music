@@ -4,7 +4,7 @@
       <li @click="selectItem(song, index)" class="item" v-for="(song, index) in songs" :key= "song.id">
         <div class="content">
           <h2 class="name">
-            {{song.name}}
+            {{ song.name }}
           </h2>
           <p class="desc">{{getDesc(song)}}</p>
         </div>
