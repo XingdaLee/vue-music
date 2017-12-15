@@ -32,7 +32,8 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{format(currentTime)}}</span>
             <div class="progress-bar-wrapper">
-              <ProgressBar :percent= "percent"></ProgressBar>
+              <!-- @percentChange监听从progress-bar.vue传递过来的数据 -->
+              <ProgressBar :percent= "percent" @percentChange = "onProgressBarChange"></ProgressBar>
             </div>
             <span class="time time-r">{{format(currentSong.duration)}}</span>
           </div>
@@ -287,6 +288,14 @@ export default {
     updateTime(ele) {
       // ele里是audio派发过来的相关数据
       this.currentTime = ele.target.currentTime
+    },
+    onProgressBarChange(percent) {
+      // 根据拖放后的比例，调用audio的实例来换算当前歌曲的进度
+      this.$refs.audio.currentTime = this.currentSong.duration * percent
+      // 拖动完成后，自动播放歌曲
+      if (!this.playing) {
+        this.togglePlaying()
+      }
     }
   },
   watch: {
