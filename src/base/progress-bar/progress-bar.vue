@@ -1,5 +1,5 @@
 <template>
-  <div class="progress-bar" ref="progressBar">
+  <div class="progress-bar" ref="progressBar" @click="progressClick">
     <div class="bar-inner">
       <!-- progress走过的进度条 -->
       <div class="progress" ref="progress"></div>
@@ -65,6 +65,12 @@ export default {
       // percent是已播放的比例
       const percent = this.$refs.progress.clientWidth / barWidth
       this.$emit('percentChange', percent)
+    },
+    progressClick(e) {
+      // 先设置样式
+      this._offset(e.offsetX)
+      // 在设置歌曲的进度
+      this._triggerPercent()
     }
   },
   props: {
