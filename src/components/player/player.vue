@@ -69,8 +69,11 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-          <!-- @click.stop可以阻止事件冒泡，防止触发父元素的事件 -->
-          <i @click.stop="togglePlaying" :class="miniIcon"></i>
+          <!-- 被ProgressCircle包裹的组件，会被插入到ProgressCircle组件的slot插槽中 -->
+          <ProgressCircle :radius="radius" :percent="percent">
+            <!-- @click.stop可以阻止事件冒泡，防止触发父元素的事件 -->
+            <i @click.stop="togglePlaying" class="icon-mini" :class="miniIcon"></i>
+          </ProgressCircle>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
@@ -94,15 +97,18 @@ import animations from 'create-keyframe-animation'
 import { prefixStyle } from 'common/js/dom'
 const transform = prefixStyle('transform')
 import ProgressBar from 'base/progress-bar/progress-bar'
+import ProgressCircle from 'base/progress-circle/progress-circle'
 export default {
   components: {
-    ProgressBar
+    ProgressBar,
+    ProgressCircle
   },
   // 设定标志位，判断歌曲url资源是否已经加载完成，防止多次点击时浏览器报错
   data() {
     return {
       songReady: false,
-      currentTime: 0
+      currentTime: 0,
+      radius: 32
     }
   },
   // computed: Vue检测到数据发生变动时就会执行对相应数据有引用的函数。
