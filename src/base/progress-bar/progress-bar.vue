@@ -1,102 +1,91 @@
 <template>
   <div class="progress-bar" ref="progressBar" @click="progressClick">
     <div class="bar-inner">
-      <!-- progress走过的进度条 -->
       <div class="progress" ref="progress"></div>
-      <!-- progress-btn-wrapper进度条上的按钮 -->
-      <!-- prevent阻止浏览器的默认行为 -->
       <div class="progress-btn-wrapper" ref="progressBtn"
-        @touchstart.prevent="progressTouchStart"
-        @touchmove.prevent="progressTouchMove"
-        @touchend="progressTouchEnd">
+           @touchstart.prevent="progressTouchStart"
+           @touchmove.prevent="progressTouchMove"
+           @touchend="progressTouchEnd"
+      >
         <div class="progress-btn"></div>
       </div>
     </div>
   </div>
 </template>
+
 <script type="text/ecmascript-6">
-import { prefixStyle } from 'common/js/dom'
-const transform = prefixStyle('transform')
-// 进度条的宽度等于总宽度减去上面小球的宽度
-const progressBtnWidth = 16
-export default {
-  // 在created钩子函数中创建touch是方便progressTouchStart，progressTouchMove，progressTouchEnd之间的数据通信
-  created() {
-    this.touch = {}
-  },
-  methods: {
-    // 刚开始第一次点击的时候
-    progressTouchStart(e) {
-      // 是否已经点击进度条
-      this.touch.initiated = true
-      // 点击的位置，横向的坐标
-      this.touch.startX = e.touches[0].pageX
-      // 点击按钮的时候，当前进度条的宽度
-      this.touch.left = this.$refs.progress.clientWidth
-    },
-    // 拖动进度条事件
-    progressTouchMove(e) {
-      if (!this.touch.initiated) {
-        return
+  import {prefixStyle} from 'common/js/dom'
+
+  const progressBtnWidth = 16
+  const transform = prefixStyle('transform')
+
+  export default {
+    props: {
+      percent: {
+        type: Number,
+        default: 0
       }
-      // 拖动时的偏移量(单位px)
-      const deltax = e.touches[0].pageX - this.touch.startX
-      // offsetWidth = this.touch.left + deltax 已经偏移的数据+后来继续拖动偏移的数据
-      // Math.max表示数据必须要大于0,offsetWidth要小于progressBar的宽度
-      const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBtnWidth, Math.max(0, this.touch.left + deltax))
-      this._offset(offsetWidth)
     },
-    // 拖动结束后
-    progressTouchEnd() {
-      this.touch.initiated = false
-      this._triggerPercent()
+    created() {
+      this.touch = {}
     },
-    // 设置进度球和进度条的样式
-    _offset(offsetWidth) {
-      // 进度条的偏移
-      this.$refs.progress.style.width = `${offsetWidth}px`
-      // 进度球的偏移
-      this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px, 0, 0)`
-    },
-    _triggerPercent() {
-      // 进度条的宽度
-      const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
-      // this.$refs.progress.clientWidth已播放的进度条的宽度
-      // percent是已播放的比例
-      const percent = this.$refs.progress.clientWidth / barWidth
-      this.$emit('percentChange', percent)
-    },
-    progressClick(e) {
-      // 先设置样式
-      this._offset(e.offsetX)
-      // 在设置歌曲的进度
-      this._triggerPercent()
-    }
-  },
-  props: {
-    // 百分比，根据百分比确定进度条的位置
-    percent: {
-      type: Number,
-      default: 0
-    }
-  },
-  // 监听从player计算属性穿过来的比例，来计算进度条的偏移量
-  watch: {
-    percent(newPercent) {
-      // 当拖动比例大于0并且没有在拖动进度条的时候
-      if (newPercent >= 0 && !this.touch.initiated) {
-        // 进度条的宽度
-        const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
-        // 小球偏移的宽度
-        const offsetWidth = newPercent * barWidth
+    methods: {
+      progressTouchStart(e) {
+        this.touch.initiated = true
+        this.touch.startX = e.touches[0].pageX
+        this.touch.left = this.$refs.progress.clientWidth
+      },
+      progressTouchMove(e) {
+        if (!this.touch.initiated) {
+          return
+        }
+        const deltaX = e.touches[0].pageX - this.touch.startX
+        const offsetWidth = Math.min(this.$refs.progressBar.clientWidth - progressBtnWidth, Math.max(0, this.touch.left + deltaX))
         this._offset(offsetWidth)
+        this.$emit('percentChanging', this._getPercent())
+      },
+      progressTouchEnd() {
+        this.touch.initiated = false
+        this._triggerPercent()
+      },
+      progressClick(e) {
+        const rect = this.$refs.progressBar.getBoundingClientRect()
+        const offsetWidth = e.pageX - rect.left
+        this._offset(offsetWidth)
+        // 这里当我们点击 progressBtn 的时候，e.offsetX 获取不对
+        // this._offset(e.offsetX)
+        this._triggerPercent()
+      },
+      setProgressOffset(percent) {
+        if (percent >= 0 && !this.touch.initiated) {
+          const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+          const offsetWidth = percent * barWidth
+          this._offset(offsetWidth)
+        }
+      },
+      _triggerPercent() {
+        this.$emit('percentChange', this._getPercent())
+      },
+      _offset(offsetWidth) {
+        this.$refs.progress.style.width = `${offsetWidth}px`
+        this.$refs.progressBtn.style[transform] = `translate3d(${offsetWidth}px,0,0)`
+      },
+      _getPercent() {
+        const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+        return this.$refs.progress.clientWidth / barWidth
+      }
+    },
+    watch: {
+      percent(newPercent) {
+        this.setProgressOffset(newPercent)
       }
     }
   }
-}
 </script>
+
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
+
   .progress-bar
     height: 30px
     .bar-inner

@@ -1,6 +1,5 @@
 <template>
   <div class="tab">
-    <!-- tag默认渲染是a标签，这里指定为"div" -->
     <router-link tag="div" class="tab-item" to="/recommend">
       <span class="tab-link">推荐</span>
     </router-link>
@@ -18,7 +17,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-export default {}
+  export default {}
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
@@ -34,7 +33,6 @@ export default {}
       .tab-link
         padding-bottom: 5px
         color: $color-text-l
-        // 当router-link触发的时候，追加下面的class
       &.router-link-active
         .tab-link
           color: $color-theme

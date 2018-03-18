@@ -5,18 +5,18 @@
   </div>
 </template>
 <script type="text/ecmascript-6">
-// props属性定义后，可以接收外部的数据
-export default {
-  props: {
-    title: {
-      type: String,
-      default: '正在载入...'
+  export default {
+    props: {
+      title: {
+        type: String,
+        default: '正在载入...'
+      }
     }
   }
-}
 </script>
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
+
   .loading
     width: 100%
     text-align: center

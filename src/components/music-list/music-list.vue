@@ -1,152 +1,152 @@
 <template>
- <div class="music-list">
-   <div class="back" @click="back">
-     <i class="icon-back"></i>
-   </div>
-   <div class="title" v-html="title"></div>
-   <div class="bg-image" :style="bgStyle" ref="bgImage">
-     <div class="play-wrapper">
-       <div class="play" v-show="songs.length > 0" ref="playBtn">
-         <i class="icon-play"></i>
-         <span class="text">随机播放全部</span>
-       </div>
-     </div>
-     <div class="filter" ref="filter"></div>
-   </div>
-   <div class="bg-layer" ref="layer"></div>
-   <!-- ref="list"拿到Scroll的引用 -->
-   <!-- @scroll 触发  scroll的方法-->
-   <scroll @scroll="scroll" :probe-type="probeType" :listen-scroll = "listenScroll" :data="songs" class="list" ref="list">
-     <div class="song-list-wrapper">
-       <!-- @select方法来自base/song-list -->
-       <song-list @select="selectItem" :songs="songs"></song-list>
-     </div>
-     <div class="loading-container" v-show="!songs.length">
-       <loading></loading>
-     </div>
-   </scroll>
- </div>
+  <div class="music-list">
+    <div class="back" @click="back">
+      <i class="icon-back"></i>
+    </div>
+    <h1 class="title" v-html="title"></h1>
+    <div class="bg-image" :style="bgStyle" ref="bgImage">
+      <div class="play-wrapper">
+        <div ref="playBtn" v-show="songs.length>0" class="play" @click="random">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
+      <div class="filter" ref="filter"></div>
+    </div>
+    <div class="bg-layer" ref="layer"></div>
+    <scroll :data="songs" @scroll="scroll"
+            :listen-scroll="listenScroll" :probe-type="probeType" class="list" ref="list">
+      <div class="song-list-wrapper">
+        <song-list :songs="songs" :rank="rank" @select="selectItem"></song-list>
+      </div>
+      <div v-show="!songs.length" class="loading-container">
+        <loading></loading>
+      </div>
+    </scroll>
+  </div>
 </template>
+
 <script type="text/ecmascript-6">
-import Scroll from 'base/scroll/scroll'
-import SongList from 'base/song-list/song-list'
-import { prefixStyle } from 'common/js/dom'
-import Loading from 'base/loading/loading'
-// 数据必须在store中的actions commit后才可使用 mapActions
-import { mapActions } from 'vuex'
-const RESERVED_HEIGHT = 40
-const transform = prefixStyle('transform')
-const backdrop = prefixStyle('backdrop-filter')
-// props接收从别的组件调用时传过来的数据
-export default {
-  props: {
-    bgImage: {
-      type: String,
-      default: ''
-    },
-    songs: {
-      type: Array,
-      default: []
-    },
-    title: {
-      type: String,
-      default: ''
-    }
-  },
-  data() {
-    return {
-      scrollY: 0
-    }
-  },
-  // computed 计算属性
-  computed: {
-    bgStyle() {
-      return `background-image:url(${this.bgImage})`
-    }
-  },
-  created() {
-    this.probeType = 3
-    this.listenScroll = true
-  },
-  methods: {
-    // 实时的拿到scrollY的值
-    scroll(pos) {
-      this.scrollY = pos.y
-    },
-    back() {
-      this.$router.back()
-    },
-    selectItem(item, index) {
-      // 这里给mapActions中的selectPlay传值 ->store/actions
-      this.selectPlay({
-        list: this.songs,
-        index: index
-      })
-    },
-    // selectPlay是store/actions里定义的方法
-    ...mapActions([
-      'selectPlay'
-    ])
-  },
-  watch: {
-    scrollY(newY) {
-      let tranlateY = Math.max(this.minTranslateY, newY)
-      let zIndex = 0
-      // 下拉列表时放大image
-      let scale = 1
-      // 上拉的时候，高斯模糊效果
-      let blur = 0
-      // this.$refs.layer.style['transform'] = `translate3d(0,${tranlateY}px,0)`
-      // this.$refs.layer.style['webkitTransform'] = `translate3d(0,${tranlateY}px,0)`
-      this.$refs.layer.style[transform] = `translate3d(0,${tranlateY}px,0)`
-      // 放大的比例公式
-      const precent = Math.abs(newY / this.imageHeight)
-      // 上拉的时候
-      if (newY > 0) {
-        scale = 1 + precent
-        zIndex = 10
-      } else {
-        blur = Math.min(20 * precent, 20)
+  import Scroll from 'base/scroll/scroll'
+  import Loading from 'base/loading/loading'
+  import SongList from 'base/song-list/song-list'
+  import {prefixStyle} from 'common/js/dom'
+  import {playlistMixin} from 'common/js/mixin'
+  import {mapActions} from 'vuex'
+
+  const RESERVED_HEIGHT = 40
+  const transform = prefixStyle('transform')
+  const backdrop = prefixStyle('backdrop-filter')
+
+  export default {
+    mixins: [playlistMixin],
+    props: {
+      bgImage: {
+        type: String,
+        default: ''
+      },
+      songs: {
+        type: Array,
+        default: []
+      },
+      title: {
+        type: String,
+        default: ''
+      },
+      rank: {
+        type: Boolean,
+        default: false
       }
-      // // 高斯模糊效果只能iphone可以看到
-      // this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
-      // this.$refs.filter.style['webkitBackdrop-filter'] = `blur(${blur}px)`
-      this.$refs.filter.style[backdrop] = `blur(${blur}px)`
-      // 上下滑动列表时，防止列表遮盖title
-      if (newY < this.minTranslateY) {
-        // 滚动到顶部时
-        zIndex = 10
-        this.$refs.bgImage.style.paddingTop = 0
-        this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
-        this.$refs.playBtn.style.display = 'none'
-      } else {
-        this.$refs.bgImage.style.paddingTop = '70%'
-        this.$refs.bgImage.style.height = 0
-        this.$refs.playBtn.style.display = ''
+    },
+    data() {
+      return {
+        scrollY: 0
       }
-      this.$refs.bgImage.style.zIndex = zIndex
-      // this.$refs.bgImage.style['transform'] = `scale(${scale})`
-      // this.$refs.bgImage.style['webkitTransform'] = `scale(${scale})`
-      this.$refs.bgImage.style[transform] = `scale(${scale})`
+    },
+    computed: {
+      bgStyle() {
+        return `background-image:url(${this.bgImage})`
+      }
+    },
+    created() {
+      this.probeType = 3
+      this.listenScroll = true
+    },
+    mounted() {
+      this.imageHeight = this.$refs.bgImage.clientHeight
+      this.minTransalteY = -this.imageHeight + RESERVED_HEIGHT
+      this.$refs.list.$el.style.top = `${this.imageHeight}px`
+    },
+    methods: {
+      handlePlaylist(playlist) {
+        const bottom = playlist.length > 0 ? '60px' : ''
+        this.$refs.list.$el.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
+      scroll(pos) {
+        this.scrollY = pos.y
+      },
+      back() {
+        this.$router.back()
+      },
+      selectItem(item, index) {
+        this.selectPlay({
+          list: this.songs,
+          index
+        })
+      },
+      random() {
+        this.randomPlay({
+          list: this.songs
+        })
+      },
+      ...mapActions([
+        'selectPlay',
+        'randomPlay'
+      ])
+    },
+    watch: {
+      scrollY(newVal) {
+        let translateY = Math.max(this.minTransalteY, newVal)
+        let scale = 1
+        let zIndex = 0
+        let blur = 0
+        const percent = Math.abs(newVal / this.imageHeight)
+        if (newVal > 0) {
+          scale = 1 + percent
+          zIndex = 10
+        } else {
+          blur = Math.min(20, percent * 20)
+        }
+
+        this.$refs.layer.style[transform] = `translate3d(0,${translateY}px,0)`
+        this.$refs.filter.style[backdrop] = `blur(${blur}px)`
+        if (newVal < this.minTransalteY) {
+          zIndex = 10
+          this.$refs.bgImage.style.paddingTop = 0
+          this.$refs.bgImage.style.height = `${RESERVED_HEIGHT}px`
+          this.$refs.playBtn.style.display = 'none'
+        } else {
+          this.$refs.bgImage.style.paddingTop = '70%'
+          this.$refs.bgImage.style.height = 0
+          this.$refs.playBtn.style.display = ''
+        }
+        this.$refs.bgImage.style[transform] = `scale(${scale})`
+        this.$refs.bgImage.style.zIndex = zIndex
+      }
+    },
+    components: {
+      Scroll,
+      Loading,
+      SongList
     }
-  },
-  // el 被新创建的 vm.$el 替换，并挂载到实例上去之后调用mounted。
-  mounted() {
-    this.imageHeight = this.$refs.bgImage.clientHeight
-    this.minTranslateY = -this.imageHeight + RESERVED_HEIGHT
-    // 如果不给scroll的top高度，scroll会覆盖整个页面。高度等于当前页面背景图的高度
-    this.$refs.list.$el.style.top = `${this.imageHeight}px`
-  },
-  components: {
-    Scroll,
-    SongList,
-    Loading
   }
-}
 </script>
+
 <style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
   @import "~common/stylus/mixin"
+
   .music-list
     position: fixed
     z-index: 100
@@ -219,7 +219,7 @@ export default {
       height: 100%
       background: $color-background
     .list
-      position: fixed
+      position: absolute
       top: 0
       bottom: 0
       width: 100%

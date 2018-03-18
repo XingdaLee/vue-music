@@ -1,22 +1,34 @@
-// babel-polyfill补丁，对es6语法的转义
 import 'babel-polyfill'
+import 'common/js/hack'
 import Vue from 'vue'
 import App from './App'
-import fastclick from 'fastclick'
 import router from './router'
-// 必须在webpack下注册别名才可以使用
-import 'common/stylus/index.styl'
+import fastclick from 'fastclick'
 import VueLazyload from 'vue-lazyload'
 import store from './store'
+import { SET_PLAY_HISTORY, SET_FAVORITE_LIST } from './store/mutation-types'
+import { loadPlay, loadFavorite } from 'common/js/cache'
+import { processSongsUrl } from 'common/js/song'
+
+import 'common/stylus/index.styl'
+
+/* eslint-disable no-unused-vars */
+// import vConsole from 'vconsole'
 
 fastclick.attach(document.body)
-Vue.config.productionTip = false
-// require是webpack的语法
+
 Vue.use(VueLazyload, {
-  preLoad: 1.3,
-  error: 'dist/error.png',
-  loading: require('common/images/default.png'),
-  attempt: 1
+  loading: require('common/image/default.png')
+})
+
+const historySongs = loadPlay()
+processSongsUrl(historySongs).then((songs) => {
+  store.commit(SET_PLAY_HISTORY, songs)
+})
+
+const favoriteSongs = loadFavorite()
+processSongsUrl(favoriteSongs).then((songs) => {
+  store.commit(SET_FAVORITE_LIST, songs)
 })
 
 /* eslint-disable no-new */

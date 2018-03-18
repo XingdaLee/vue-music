@@ -3,79 +3,110 @@
     <slot></slot>
   </div>
 </template>
+
 <script type="text/ecmascript-6">
-import BScroll from 'better-scroll'
-export default {
-  // probeType=1只能监听到一般慢速的滚动，快速(实时滚动)的是监听不到的，调用时设置为3可以
-  props: {
-    probeType: {
-      type: Number,
-      default: 1
-    },
-    click: {
-      type: Boolean,
-      default: true
-    },
-    data: {
-      type: Array,
-      default: null
-    },
-    // default为是否监听滚动事件
-    listenScroll: {
-      type: Boolean,
-      default: false
-    }
-  },
-  // 初始化的時候調用
-  mounted() {
-    setTimeout(() => {
-      this._initScroll()
-    }, 20)
-  },
-  methods: {
-    _initScroll() {
-      if (!this.$refs.wrapper) {
-        return
-      }
-      this.scroll = new BScroll(this.$refs.wrapper, {
-        probeType: this.probeType,
-        click: this.click
-      })
-      // pos是位置
-      if (this.listenScroll) {
-        // this是vue的实例
-        let that = this
-        this.scroll.on('scroll', (pos) => {
-          // 派发一个scroll事件出去
-          that.$emit('scroll', pos)
-        })
+  import BScroll from 'better-scroll'
+
+  const DIRECTION_H = 'horizontal'
+  const DIRECTION_V = 'vertical'
+
+  export default {
+    props: {
+      probeType: {
+        type: Number,
+        default: 1
+      },
+      click: {
+        type: Boolean,
+        default: false
+      },
+      listenScroll: {
+        type: Boolean,
+        default: false
+      },
+      data: {
+        type: Array,
+        default: null
+      },
+      pullup: {
+        type: Boolean,
+        default: false
+      },
+      beforeScroll: {
+        type: Boolean,
+        default: false
+      },
+      refreshDelay: {
+        type: Number,
+        default: 20
+      },
+      direction: {
+        type: String,
+        default: DIRECTION_V
       }
     },
-    // 下面是BScroll的方法代理
-    enable() {
-      this.scroll && this.scroll.enable()
-    },
-    disable() {
-      this.scroll && this.scroll.disable()
-    },
-    refresh() {
-      this.scroll && this.scroll.refresh()
-    },
-    // 滚动到指定位置
-    scrollTo() {
-      this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
-    },
-    scrollToElement() {
-      this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
-    }
-  },
-  // 监听传过来的data的数据变化，就去自动刷新scroll，不用再使用this.$refs.scroll.refresh()去手动的刷新
-  watch: {
-    data() {
+    mounted() {
       setTimeout(() => {
-        this.refresh()
+        this._initScroll()
       }, 20)
+    },
+    methods: {
+      _initScroll() {
+        if (!this.$refs.wrapper) {
+          return
+        }
+        this.scroll = new BScroll(this.$refs.wrapper, {
+          probeType: this.probeType,
+          click: this.click,
+          eventPassthrough: this.direction === DIRECTION_V ? DIRECTION_H : DIRECTION_V
+        })
+
+        if (this.listenScroll) {
+          this.scroll.on('scroll', (pos) => {
+            this.$emit('scroll', pos)
+          })
+        }
+
+        if (this.pullup) {
+          this.scroll.on('scrollEnd', () => {
+            if (this.scroll.y <= (this.scroll.maxScrollY + 50)) {
+              this.$emit('scrollToEnd')
+            }
+          })
+        }
+
+        if (this.beforeScroll) {
+          this.scroll.on('beforeScrollStart', () => {
+            this.$emit('beforeScroll')
+          })
+        }
+      },
+      disable() {
+        this.scroll && this.scroll.disable()
+      },
+      enable() {
+        this.scroll && this.scroll.enable()
+      },
+      refresh() {
+        this.scroll && this.scroll.refresh()
+      },
+      scrollTo() {
+        this.scroll && this.scroll.scrollTo.apply(this.scroll, arguments)
+      },
+      scrollToElement() {
+        this.scroll && this.scroll.scrollToElement.apply(this.scroll, arguments)
+      }
+    },
+    watch: {
+      data() {
+        setTimeout(() => {
+          this.refresh()
+        }, this.refreshDelay)
+      }
     }
   }
-}
 </script>
+
+<style scoped lang="stylus" rel="stylesheet/stylus">
+
+</style>

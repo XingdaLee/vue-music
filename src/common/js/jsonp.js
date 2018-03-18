@@ -1,10 +1,10 @@
-import originJSONP from 'jsonp'
-// data是参数
+import originJsonp from 'jsonp'
+
 export default function jsonp(url, data, option) {
   url += (url.indexOf('?') < 0 ? '?' : '&') + param(data)
-  // resolve成功时调用 reject失败时调用
+
   return new Promise((resolve, reject) => {
-    originJSONP(url, option, (err, data) => {
+    originJsonp(url, option, (err, data) => {
       if (!err) {
         resolve(data)
       } else {
@@ -13,7 +13,7 @@ export default function jsonp(url, data, option) {
     })
   })
 }
-// encodeURIComponent() 函数可把字符串作为 URI 组件进行编码。
+
 export function param(data) {
   let url = ''
   for (var k in data) {
@@ -22,4 +22,3 @@ export function param(data) {
   }
   return url ? url.substring(1) : ''
 }
-

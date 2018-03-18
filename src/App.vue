@@ -1,19 +1,19 @@
 <template>
-  <div id="app">
+  <div id="app" @touchmove.prevent>
     <m-header></m-header>
-    <Tab></Tab>
+    <tab></tab>
     <keep-alive>
-      <router-view></router-view>      
+      <router-view></router-view>
     </keep-alive>
     <player></player>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-  // 驼峰表达式
   import MHeader from 'components/m-header/m-header'
-  import Tab from 'components/tab/tab'
   import Player from 'components/player/player'
+  import Tab from 'components/tab/tab'
+
   export default {
     components: {
       MHeader,
